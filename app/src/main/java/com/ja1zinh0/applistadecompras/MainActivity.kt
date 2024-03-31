@@ -159,18 +159,26 @@ fun CardItem(card: CardItem) {
                 val textMeasurer = rememberTextMeasurer()
                 Spacer(
                     modifier = Modifier
-                        .requiredWidth(200.dp)
+                        .requiredWidth(230.dp)
                         .padding(top = 115.dp)
                         .drawWithCache {
                             val measuredText =
                                 textMeasurer.measure(
-                                    AnnotatedString("aaaa"),
+                                    AnnotatedString("Total: "),
                                     constraints = Constraints.fixedWidth((size.width * 2f / 3f).toInt()),
                                     style = TextStyle(
                                         color = colorTextRect,
                                         fontSize = 16.sp,
                                     ),
-
+                                )
+                            val teste =
+                                textMeasurer.measure(
+                                    AnnotatedString("R$ 9999,00"),
+                                    constraints = Constraints.fixedWidth((size.width * 2f / 3f).toInt()),
+                                    style = TextStyle(
+                                        color = colorTextRect,
+                                        fontSize = 16.sp,
+                                    ),
                                 )
                             onDrawBehind {
                                 drawRoundRect(
@@ -178,7 +186,14 @@ fun CardItem(card: CardItem) {
                                     size = measuredText.size.toSize(),
                                     cornerRadius = CornerRadius(40f)
                                 )
-                                drawText(measuredText)
+                                drawText(
+                                    measuredText,
+                                    topLeft = Offset(20f, 0f)
+                                )
+                                drawText(
+                                    teste,
+                                    topLeft = Offset(160f, 0f)
+                                )
                             }
                         }
                 )
