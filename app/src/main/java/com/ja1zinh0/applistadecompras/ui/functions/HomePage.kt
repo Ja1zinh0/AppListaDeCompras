@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package com.ja1zinh0.applistadecompras.ui.functions
 
@@ -6,11 +6,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -21,14 +21,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-
 
 @Composable
 fun HomePage() {
     val cardList = remember { mutableStateListOf<CardItem>() }
+    val scrollState = rememberScrollState()
+    val showDialog = remember { mutableStateOf(false) }
+    val textFieldValue = remember { mutableStateOf("") }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -39,23 +42,10 @@ fun HomePage() {
                 title = { Text("Minhas listas") },
             )
         },
-        bottomBar = {
-            BottomAppBar(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    text = "Bottom app bar",
-                )
-            }
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // Adicione um novo card à lista
-                    cardList.add(CardItem("Casa", "nada ainda"))
+                    showDialog.value = true
                 }
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Adicionar Card")
@@ -69,7 +59,9 @@ fun HomePage() {
                 .padding(innerPadding)
         ) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(enabled = true, state = scrollState)
             ) {
                 cardList.forEach { card ->
                     CardItem(card) {
@@ -77,6 +69,16 @@ fun HomePage() {
                     }
                 }
             }
+        }
+        if (showDialog.value) {
+            CustomAlertDialog(
+                onDismissRequest = { showDialog.value = false },
+                onConfirmation = { title ->
+                    cardList.add(CardItem(title))
+                    showDialog.value = false
+                },
+                dialogTitle = "Nome do card",
+            )
         }
     }
 }

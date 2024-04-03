@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.ja1zinh0.applistadecompras.ui.functions
 
 import androidx.compose.foundation.layout.Arrangement
@@ -5,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -13,18 +16,25 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -39,16 +49,24 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import kotlinx.coroutines.launch
 
 
-data class CardItem(val title: String, val description: String)
+data class CardItem(val title: String)
 
 @Composable
-fun CardItem(card: CardItem, onDeleteClicked: () -> Unit) {
+fun CardItem(
+    card: CardItem,
+    onDeleteClicked: () -> Unit,
+    ) {
     val colorRect = MaterialTheme.colorScheme.tertiaryContainer
     val colorTextRect = MaterialTheme.colorScheme.onTertiaryContainer
     val textMeasurer = rememberTextMeasurer()
+
     var expanded by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
 
     Row(
         modifier = Modifier
@@ -63,6 +81,9 @@ fun CardItem(card: CardItem, onDeleteClicked: () -> Unit) {
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 12.dp
             ),
+            onClick = {
+                showBottomSheet = true
+            }
         ) {
             Column(
                 modifier = Modifier
@@ -103,7 +124,7 @@ fun CardItem(card: CardItem, onDeleteClicked: () -> Unit) {
                                         "Excluir",
                                         style = TextStyle(
                                             textAlign = TextAlign.Center,
-                                            fontSize = 16.sp,
+                                            fontSize = 18.sp,
                                         ),
                                         modifier = Modifier
                                             .fillMaxSize()
@@ -197,7 +218,84 @@ fun CardItem(card: CardItem, onDeleteClicked: () -> Unit) {
                             }
                         }
                 )
+                if (showBottomSheet) {
+                    ModalBottomSheet(
+                        onDismissRequest = {
+                            showBottomSheet = false
+                        },
+                        sheetState = sheetState,
+                        modifier = Modifier.fillMaxHeight()
+                    ) {
+                        // Sheet content
+                        Button(onClick = {
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                }
+                            }
+                        }) {
+                            Text("Hide bottom sheet")
+                        }
+                    }
+                }
+            }
             }
         }
     }
-}
+
+    @Composable
+    fun CustomAlertDialog(
+        onDismissRequest: () -> Unit,
+        onConfirmation: (String) -> Unit,
+        dialogTitle: String,
+    ) {
+        var textFieldValue by remember { mutableStateOf("") }
+        val dialogContent = @Composable {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                OutlinedTextField(
+                    value = textFieldValue,
+                    onValueChange = { newValue ->
+                        val maxTextFieldLength = 10
+                        if (newValue.length <= maxTextFieldLength) {
+                            textFieldValue = newValue
+                        }
+                    },
+                    maxLines = 1,
+                )
+            }
+        }
+        AlertDialog(
+            onDismissRequest = onDismissRequest,
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onConfirmation(textFieldValue)
+                    }
+                ) {
+                    Text("Criar")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = onDismissRequest
+                ) {
+                    Text("Cancelar")
+                }
+            },
+            title = {
+                Text(
+                    text = dialogTitle,
+                    modifier = Modifier.fillMaxWidth(),
+                    style = TextStyle(
+                        textAlign = TextAlign.Center,
+                        fontSize = 24.sp,
+                    )
+                )
+            },
+            text = dialogContent
+        )
+    }
+
+
