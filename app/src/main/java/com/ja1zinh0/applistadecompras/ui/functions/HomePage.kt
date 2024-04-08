@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -17,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -24,13 +27,16 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun HomePage() {
     val cardList = remember { mutableStateListOf<CardItem>() }
     val scrollState = rememberScrollState()
     val showDialog = remember { mutableStateOf(false) }
-    val textFieldValue = remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -42,15 +48,6 @@ fun HomePage() {
                 title = { Text("Minhas listas") },
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    showDialog.value = true
-                }
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar Card")
-            }
-        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -68,6 +65,15 @@ fun HomePage() {
                         cardList.remove(card)
                     }
                 }
+                TextButton(
+                    onClick = { showDialog.value = true },
+                    modifier = Modifier.fillMaxWidth(0.5f)
+                ) {
+                    Text(text = "+ Nova lista", style = TextStyle(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold
+                    ))
+                }
             }
         }
         if (showDialog.value) {
@@ -77,7 +83,7 @@ fun HomePage() {
                     cardList.add(CardItem(title))
                     showDialog.value = false
                 },
-                dialogTitle = "Nome do card",
+                dialogTitle = "Nome da lista",
             )
         }
     }
