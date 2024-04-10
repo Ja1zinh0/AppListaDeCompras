@@ -5,8 +5,6 @@
 
 package com.ja1zinh0.applistadecompras.ui.functions
 
-
-import android.icu.text.MessageFormat.format
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +17,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -243,33 +242,37 @@ fun CardItem(
                             showBottomSheet = false
                         }, sheetState = sheetState, modifier = Modifier.fillMaxHeight()
                     ) {
-
                         Box(modifier = Modifier.fillMaxSize()) {
-
                             Column {
-                                    itemList.forEach { item ->
-                                        val formattedValue =
-                                            String.format("%.2f", item.valor).replace(".", ",")
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                        ) {
-                                            Text(
-                                                text = "${item.description} R$ $formattedValue"
-                                            )
+                                itemList.forEach { item ->
+                                    val formattedValue =
+                                        String.format("%.2f", item.valor).replace(".", ",")
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                    ) {
+                                        Text(
+                                            text = item.description,
+                                            modifier = Modifier.padding(start = 16.dp)
+                                        )
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                            Text(text = "R$ $formattedValue")
                                             IconButton(
                                                 onClick = {
-                                                itemList.remove(item)
+                                                    itemList.remove(item)
                                                 },
-                                                modifier = Modifier.offset(18.dp, 0.dp),
+
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Filled.Delete,
                                                     contentDescription = "Overflow menu",
+                                                    modifier = Modifier.padding(bottom = 24.dp, end = 10.dp)
                                                 )
                                             }
                                         }
 
                                     }
+
+                                }
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.Center
