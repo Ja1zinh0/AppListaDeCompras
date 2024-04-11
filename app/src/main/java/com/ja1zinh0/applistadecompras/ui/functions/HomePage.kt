@@ -80,8 +80,10 @@ fun HomePage() {
             CustomAlertDialog(
                 onDismissRequest = { showDialog.value = false },
                 onConfirmation = { title ->
-                    cardList.add(CardItem(title))
-                    showDialog.value = false
+                    if(title.isNotEmpty()){
+                        cardList.add(CardItem(title))
+                        showDialog.value = false
+                    }
                 },
                 dialogTitle = "Nome da lista",
             )

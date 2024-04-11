@@ -1,6 +1,6 @@
 @file:OptIn(
     ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3Api::class
+    ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class
 )
 
 package com.ja1zinh0.applistadecompras.ui.functions
@@ -18,7 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
@@ -50,6 +53,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
@@ -57,6 +61,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import androidx.core.text.isDigitsOnly
 
 data class CardItem(val title: String)
 
@@ -109,6 +114,7 @@ fun CardItem(
                     Text(
                         text = card.title,
                         style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(start = 5.dp, top = 4.dp)
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Box {
@@ -178,8 +184,6 @@ fun CardItem(
                                     ),
                                 )
                             }
-
-
                             onDrawBehind {
                                 drawRoundRect(
                                     colorRect,
@@ -236,6 +240,7 @@ fun CardItem(
                             )
                         }
                     })
+                val scrollState = rememberScrollState()
                 if (showBottomSheet) {
                     ModalBottomSheet(
                         onDismissRequest = {
@@ -243,36 +248,11 @@ fun CardItem(
                         }, sheetState = sheetState, modifier = Modifier.fillMaxHeight()
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
-                            Column {
-                                itemList.forEach { item ->
-                                    val formattedValue =
-                                        String.format("%.2f", item.valor).replace(".", ",")
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                    ) {
-                                        Text(
-                                            text = item.description,
-                                            modifier = Modifier.padding(start = 16.dp)
-                                        )
-                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                            Text(text = "R$ $formattedValue")
-                                            IconButton(
-                                                onClick = {
-                                                    itemList.remove(item)
-                                                },
-
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Filled.Delete,
-                                                    contentDescription = "Overflow menu",
-                                                    modifier = Modifier.padding(bottom = 24.dp, end = 10.dp)
-                                                )
-                                            }
-                                        }
-
-                                    }
-
-                                }
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .verticalScroll(enabled = true, state = scrollState)
+                            ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.Center
@@ -283,6 +263,42 @@ fun CardItem(
                                         Text(text = "Adicionar item")
                                     }
                                 }
+                                itemList.forEach { item ->
+                                    val formattedValue =
+                                        String.format("%.2f", item.valor).replace(".", ",")
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                    ) {
+                                        Text(
+                                            text = item.description,
+                                            modifier = Modifier.padding(start = 16.dp)
+                                        )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.End
+                                        ) {
+                                            Text(text = "R$ $formattedValue")
+                                            IconButton(
+                                                onClick = {
+                                                    itemList.remove(item)
+                                                },
+
+                                                ) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Delete,
+                                                    contentDescription = "Overflow menu",
+                                                    modifier = Modifier.padding(
+                                                        bottom = 24.dp,
+                                                        end = 10.dp
+                                                    )
+                                                )
+                                            }
+                                        }
+
+                                    }
+
+                                }
+
                             }
 
                             if (showDialog.value) {
@@ -317,18 +333,22 @@ fun CustomAlertDialog(
             OutlinedTextField(
                 value = textFieldValue,
                 onValueChange = { newValue ->
-                    val maxTextFieldLength = 10
+                    val maxTextFieldLength = 20
                     if (newValue.length <= maxTextFieldLength) {
                         textFieldValue = newValue
                     }
                 },
                 maxLines = 1,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
+                ),
             )
         }
     }
     AlertDialog(onDismissRequest = onDismissRequest, confirmButton = {
         Button(onClick = {
             onConfirmation(textFieldValue)
+
         }) {
             Text("Criar")
         }
@@ -357,6 +377,7 @@ fun ItemCardDialog(
 ) {
     var textFieldValue by remember { mutableStateOf("") }
     var numberFieldValue by remember { mutableStateOf("") }
+    var QuantityFieldValue by remember { mutableStateOf("") }
     val dialogContent = @Composable {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -366,12 +387,20 @@ fun ItemCardDialog(
                 placeholder = { Text(text = "Digite o nome do produto") },
                 value = textFieldValue,
                 onValueChange = { newValue ->
-                    val maxTextFieldLength = 10
+                    val maxTextFieldLength = 20
                     if (newValue.length <= maxTextFieldLength) {
                         textFieldValue = newValue
                     }
                 },
                 maxLines = 1,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        defaultKeyboardAction(ImeAction.Done)
+                    }
+                )
             )
             OutlinedTextField(
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
@@ -379,22 +408,41 @@ fun ItemCardDialog(
                 placeholder = { Text(text = "Digite o valor do produto") },
                 value = numberFieldValue,
                 onValueChange = { newValue ->
-                    val maxTextFieldLength = 6
-                    val sanitizedValue = newValue.replace(',', '.')
-                    if (newValue.length <= maxTextFieldLength) {
-                        numberFieldValue = sanitizedValue
+                    val maxTextFieldLength = 7
+                    val sanitizedValue = newValue.filter { it.isDigit() || it == ',' || it == '.' }
+                        .replace(',', '.')
+                    val dotCount = sanitizedValue.count { it == '.' }
+                    val isFirstCharDot = sanitizedValue.startsWith('.')
+                    if (newValue.length <= maxTextFieldLength && dotCount <= 1 && !isFirstCharDot) {
+                            numberFieldValue = sanitizedValue
                     }
                 },
                 maxLines = 1,
                 modifier = Modifier.padding(top = 15.dp),
-
-                )
+            )
+            OutlinedTextField(
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                label = { Text("Unidades") },
+                placeholder = { Text(text = "Quantidade de unidades") },
+                value = QuantityFieldValue,
+                onValueChange = { newValue ->
+                    val maxTextFieldLength = 2
+                    val sanitizedValue = newValue.filter { it.isDigit()}
+                    if (newValue.length <= maxTextFieldLength) {
+                        QuantityFieldValue = sanitizedValue
+                    }
+                },
+                maxLines = 1,
+                modifier = Modifier.padding(top = 15.dp),
+            )
         }
 
     }
     AlertDialog(onDismissRequest = onDismissRequest, confirmButton = {
         Button(onClick = {
-            onConfirmation(textFieldValue, numberFieldValue.toFloat())
+            if (textFieldValue.isNotEmpty() && numberFieldValue.isNotEmpty() && QuantityFieldValue.isNotEmpty()){
+                onConfirmation(textFieldValue, numberFieldValue.toFloat())
+            }
         }) {
             Text("Adicionar")
         }
