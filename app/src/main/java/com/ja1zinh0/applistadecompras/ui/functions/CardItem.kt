@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -61,7 +60,6 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import androidx.core.text.isDigitsOnly
 
 data class CardItem(val title: String)
 
@@ -270,7 +268,7 @@ fun CardItem(
                                         modifier = Modifier.fillMaxWidth(),
                                     ) {
                                         Text(
-                                            text = item.description,
+                                            text = "() ${item.description}",
                                             modifier = Modifier.padding(start = 16.dp)
                                         )
                                         Row(
@@ -304,7 +302,7 @@ fun CardItem(
                             if (showDialog.value) {
                                 ItemCardDialog(
                                     onDismissRequest = { showDialog.value = false },
-                                    onConfirmation = { description, value ->
+                                    onConfirmation = { description, value->
                                         itemList.add(ItemFromCard(description, value))
                                         showDialog.value = false
                                     },
@@ -377,7 +375,8 @@ fun ItemCardDialog(
 ) {
     var textFieldValue by remember { mutableStateOf("") }
     var numberFieldValue by remember { mutableStateOf("") }
-    var QuantityFieldValue by remember { mutableStateOf("") }
+    var quantityFieldValue by remember { mutableStateOf("") }
+
     val dialogContent = @Composable {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -414,7 +413,7 @@ fun ItemCardDialog(
                     val dotCount = sanitizedValue.count { it == '.' }
                     val isFirstCharDot = sanitizedValue.startsWith('.')
                     if (newValue.length <= maxTextFieldLength && dotCount <= 1 && !isFirstCharDot) {
-                            numberFieldValue = sanitizedValue
+                        numberFieldValue = sanitizedValue
                     }
                 },
                 maxLines = 1,
@@ -424,12 +423,12 @@ fun ItemCardDialog(
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                 label = { Text("Unidades") },
                 placeholder = { Text(text = "Quantidade de unidades") },
-                value = QuantityFieldValue,
+                value = quantityFieldValue,
                 onValueChange = { newValue ->
                     val maxTextFieldLength = 2
-                    val sanitizedValue = newValue.filter { it.isDigit()}
-                    if (newValue.length <= maxTextFieldLength) {
-                        QuantityFieldValue = sanitizedValue
+                    val sanitizedValue = newValue.filter { it.isDigit() }
+                    if (sanitizedValue != "0" && newValue.length <= maxTextFieldLength) {
+                        quantityFieldValue = sanitizedValue
                     }
                 },
                 maxLines = 1,
@@ -440,8 +439,11 @@ fun ItemCardDialog(
     }
     AlertDialog(onDismissRequest = onDismissRequest, confirmButton = {
         Button(onClick = {
-            if (textFieldValue.isNotEmpty() && numberFieldValue.isNotEmpty() && QuantityFieldValue.isNotEmpty()){
-                onConfirmation(textFieldValue, numberFieldValue.toFloat())
+            if (textFieldValue.isNotEmpty() && numberFieldValue.isNotEmpty() && quantityFieldValue.isNotEmpty()) {
+                onConfirmation(
+                    textFieldValue,
+                    (numberFieldValue.toFloat() * quantityFieldValue.toFloat())
+                )
             }
         }) {
             Text("Adicionar")
