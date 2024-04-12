@@ -79,12 +79,12 @@ fun CardItem(
     val showDialog = remember { mutableStateOf(false) }
 
 
-    data class ItemFromCard(val description: String, val valor: Float)
+    data class ItemFromCard(val description: String, val valor: Float, val quantity: Int)
 
     val itemList = remember { mutableStateListOf<ItemFromCard>() }
 
     val totalItems = itemList.size
-    val totalValue = itemList.fold(0f) { acc, item -> acc + item.valor }
+    val totalValue = itemList.fold(0f) { acc, item -> acc + item.valor * item.quantity }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -263,19 +263,29 @@ fun CardItem(
                                 }
                                 itemList.forEach { item ->
                                     val formattedValue =
+                                        String.format("%.2f", item.valor * item.quantity)
+                                            .replace(".", ",")
+                                    val formattedSingleValue =
                                         String.format("%.2f", item.valor).replace(".", ",")
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                     ) {
                                         Text(
-                                            text = "() ${item.description}",
+                                            text = "(${item.quantity}x) ${item.description}",
                                             modifier = Modifier.padding(start = 16.dp)
                                         )
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.End
                                         ) {
-                                            Text(text = "R$ $formattedValue")
+                                            Column {
+                                                Text(text = "R$ $formattedValue")
+                                                Text(
+                                                    text = "R$ $formattedSingleValue (cada)",
+                                                    style = TextStyle(fontSize = 10.sp),
+                                                    modifier = Modifier.padding(start = 5.dp)
+                                                )
+                                            }
                                             IconButton(
                                                 onClick = {
                                                     itemList.remove(item)
@@ -302,8 +312,8 @@ fun CardItem(
                             if (showDialog.value) {
                                 ItemCardDialog(
                                     onDismissRequest = { showDialog.value = false },
-                                    onConfirmation = { description, value->
-                                        itemList.add(ItemFromCard(description, value))
+                                    onConfirmation = { description, value, quantity ->
+                                        itemList.add(ItemFromCard(description, value, quantity))
                                         showDialog.value = false
                                     },
                                     dialogTitle = "Digite as informações",
@@ -370,7 +380,7 @@ fun CustomAlertDialog(
 @Composable
 fun ItemCardDialog(
     onDismissRequest: () -> Unit,
-    onConfirmation: (String, Float) -> Unit,
+    onConfirmation: (String, Float, Int) -> Unit,
     dialogTitle: String,
 ) {
     var textFieldValue by remember { mutableStateOf("") }
@@ -442,7 +452,8 @@ fun ItemCardDialog(
             if (textFieldValue.isNotEmpty() && numberFieldValue.isNotEmpty() && quantityFieldValue.isNotEmpty()) {
                 onConfirmation(
                     textFieldValue,
-                    (numberFieldValue.toFloat() * quantityFieldValue.toFloat())
+                    (numberFieldValue.toFloat()),
+                    quantityFieldValue.toInt()
                 )
             }
         }) {
