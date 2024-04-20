@@ -64,10 +64,12 @@ fun HomePage() {
                     onClick = { showDialog.value = true },
                     modifier = Modifier.fillMaxWidth(0.5f)
                 ) {
-                    Text(text = "+ Nova lista", style = TextStyle(
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold
-                    ))
+                    Text(
+                        text = "+ Nova lista", style = TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
                 }
             }
         }
@@ -75,7 +77,7 @@ fun HomePage() {
             CustomAlertDialog(
                 onDismissRequest = { showDialog.value = false },
                 onConfirmation = { title ->
-                    if(title.isNotEmpty()){
+                    if (title.isNotEmpty()) {
                         cardList.add(CardItem(title))
                         showDialog.value = false
                     }
